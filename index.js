@@ -1,28 +1,34 @@
 const express = require("express");
 const axios = require("axios");
+const cors = require("cors");
 require("dotenv").config();
 
 const app = express();
+app.use(cors());
+app.use(express.json());
+
 const PORT = process.env.PORT || 3000;
 
-app.get("/", (req, res) => {
-  res.send("🚀 BidFaucet Backend Running!");
-});
-
-app.get("/faucet", async (req, res) => {
+app.post("/claim", async (req, res) => {
   try {
-    const response = await axios.post("https://faucetpay.io/api/v1/send", {
-      api_key: process.env.FAUCETPAY_API_KEY,
-      to: "user_wallet_address", // ganti alamat dompet user
-      amount: "0.000001",
-      currency: "BTC"
+    const { address, currency } = req.body;
+
+    const response = await axios.post("https://faucetpay.io/api/v1/send", null, {
+      params: {
+        api_key: process.env.FAUCETPAY_API_KEY,
+        to: address,
+        amount: 0.000001, // sesuaikan
+        currency: currency
+      }
     });
+
     res.json(response.data);
-  } catch (error) {
-    res.json({ error: error.message });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Something went wrong" });
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
